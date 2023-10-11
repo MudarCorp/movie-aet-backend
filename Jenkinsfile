@@ -1,6 +1,24 @@
 pipeline {
     agent any
-
+    environment {
+        GITHUB_TOKEN = credentials('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')
+    }
+    stages {
+        stage('Checkout') {
+            steps {
+                script {
+                    checkout([$class: 'GitSCM', 
+                        branches: [[name: '*/master']],
+                        doGenerateSubmoduleConfigurations: false,
+                        extensions: [[$class: 'CloneOption', noTags: false, reference: '', shallow: true]],
+                        userRemoteConfigs: [[url: 'https://github.com/MudarCorp/movieist.git', credentialsId: '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']]]
+                    )
+                }
+            }
+        }
+        // Add more stages for your build and deployment steps
+    }
+}
     stages {
         stage('Checkout Backend') {
             steps {
