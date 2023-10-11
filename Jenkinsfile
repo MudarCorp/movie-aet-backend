@@ -12,28 +12,32 @@ pipeline {
         stage('Build Backend') {
             steps {
                 // Build the Java Spring Boot backend
-                sh 'docker build -t mudashir/my-backend-movie-app:1.0 -f backend/Dockerfile .'
+                dir('https://github.com/MudarCorp/movieist.git') {
+                    sh 'docker build -t mudashir/my-backend-movie-app:1.0 -f Dockerfile .'
+                }
             }
         }
 
         stage('Push Backend') {
             steps {
                 // Push the backend Docker image to your container registry
-                sh 'mudashir/my-backend-movie-app:1.0'
+                sh 'docker push mudashir/my-backend-movie-app:1.0'
             }
         }
 
         stage('Checkout Frontend') {
             steps {
                 // Checkout the frontend code from its Git repository
-                checkout([$class: 'GitSCM', branches: [[name: '*/main']], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [[url: 'https://github.com/your-frontend-repo.git']]])
+                checkout([$class: 'GitSCM', branches: [[name: '*/master']], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [[url: 'https://github.com/MudarCorp/movie-gold-v1.git']]])
             }
         }
 
         stage('Build Frontend') {
             steps {
                 // Build the React frontend
-                sh 'docker build -t mudashir/my-frontend-movie-app:1.0 -f frontend/Dockerfile .'
+                dir('https://github.com/MudarCorp/movie-gold-v1.git') {
+                    sh 'docker build -t mudashir/my-frontend-movie-app:1.0 -f Dockerfile .'
+                }
             }
         }
 

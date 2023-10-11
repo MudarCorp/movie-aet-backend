@@ -3,23 +3,30 @@ kind: Deployment
 metadata:
   name: backend-deployment
 spec:
-  replicas: 2
   template:
     spec:
       containers:
         - name: backend
           image: mudashir/my-backend-movie-app:1.0
           env:
-            - name: DATABASE_USERNAME
+            - name: DATABASE_URL
               valueFrom:
-                secretKeyRef:
-                  name: db-credentials-secret
-                  key: username
-            - name: DATABASE_PASSWORD
+                configMapKeyRef:
+                  name: my-config
+                  key: database-url
+            - name: APP_VERSION
               valueFrom:
-                secretKeyRef:
-                  name: db-credentials-secret
-                  key: password
+                configMapKeyRef:
+                  name: my-config
+                  key: app-version
+          volumeMounts:
+            - name: secrets-volume
+              mountPath: /etc/secrets
+        volumes:
+          - name: secrets-volume
+            secret:
+              secretName: my-secret
+
           # ...
 
 
@@ -41,22 +48,4 @@ spec:
       targetPort: 8081
   type: ClusterIP  # Adjust the service type as needed
 
-----
-apiVersion: v1
-kind: Secret
-metadata:
-  name: db-credentials-secret
-type: Opaque
-data:
-  username: <base64-encoded-username>
-  password: <base64-encoded-password>
 
-
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: app-config
-data:
-  api_key: your-api-key
-  other_config: some-value
