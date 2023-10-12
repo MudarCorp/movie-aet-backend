@@ -1,85 +1,52 @@
 pipeline {
     agent any
+    
     environment {
-        GITHUB_TOKEN = credentials('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')
+        DOCKER_HUB_CREDENTIALS = credentials('docker-hub')
     }
+    
     stages {
         stage('Checkout') {
             steps {
-                script {
-                    checkout([$class: 'GitSCM', 
-                        branches: [[name: '*/master']],
-                        doGenerateSubmoduleConfigurations: false,
-                        extensions: [[$class: 'CloneOption', noTags: false, reference: '', shallow: true]],
-                        userRemoteConfigs: [[url: 'https://github.com/MudarCorp/movieist.git', credentialsId: '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']]]
-                    )
-                }
-            }
-        }
-        // Add more stages for your build and deployment steps
-    }
-}
-    stages {
-        stage('Checkout Backend') {
-            steps {
-                // Checkout the backend code from its Git repository
                 checkout scm
             }
         }
-
+        
         stage('Build Backend') {
             steps {
-                // Build the Java Spring Boot backend
-                dir('https://github.com/MudarCorp/movieist.git') {
-                    sh 'docker build -t mudashir/my-backend-movie-app:1.0 -f Dockerfile .'
+                script {
+                    sh 'mvn clean install'
                 }
             }
         }
-
-        stage('Push Backend') {
+        
+        stage('Build Docker Image') {
             steps {
-                // Push the backend Docker image to your container registry
-                sh 'docker push mudashir/my-backend-movie-app:1.0'
-            }
-        }
-
-        stage('Checkout Frontend') {
-            steps {
-                // Checkout the frontend code from its Git repository
-                checkout([$class: 'GitSCM', branches: [[name: '*/master']], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [[url: 'https://github.com/MudarCorp/movie-gold-v1.git']]])
-            }
-        }
-
-        stage('Build Frontend') {
-            steps {
-                // Build the React frontend
-                dir('https://github.com/MudarCorp/movie-gold-v1.git') {
-                    sh 'docker build -t mudashir/my-frontend-movie-app:1.0 -f Dockerfile .'
+                script {
+                    sh 'docker build -t mudashir/my-backend-movie-app:1.0:${BUILD_NUMBER} .'
                 }
             }
         }
-
-        stage('Push Frontend') {
+        
+        stage('Push Docker Image') {
             steps {
-                // Push the frontend Docker image to your container registry
-                sh 'docker push mudashir/my-frontend-movie-app:1.0'
+                script {
+                    withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'DOCKER_HUB_CREDENTIALS', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD']]) {
+                        sh "docker login -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD}"
+                    }
+                    sh "docker push mudashir/my-backend-movie-app:1.0:${BUILD_NUMBER}"
+                }
             }
         }
-
+        
         stage('Deploy to Kubernetes') {
             steps {
-                // Apply Kubernetes YAML files for deployment
-                sh 'kubectl apply -f Backend Deployment.yaml -f backend-service.yaml -f Frontend Deployment.yaml -f frontend-service.yaml'
+                script {
+                    withCredentials([file(credentialsId: 'KUBE_CONFIG', variable: 'KUBE_CONFIG')]) {
+                        sh 'kubectl apply -f Backend Deployment.yaml --kubeconfig=$KUBE_CONFIG'
+                    }
+                }
             }
         }
     }
-
-    post {
-        success {
-            echo 'Deployment successful!'
-        }
-        failure {
-            echo 'Deployment failed!'
-        }
-    }
-// }
+}
