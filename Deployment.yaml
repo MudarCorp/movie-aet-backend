@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend-deployment
+spec:
+  selector:
+    matchLabels:
+      app: backend
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: backend
+    spec:
+      containers:
+      - name: backend
+        image: mudashir/my-backend-movie-app:1.0
+        env:
+        - name: DATABASE_URL
+          valueFrom:
+            configMapKeyRef:
+              name: my-config
+              key: database-url
+        - name: APP_VERSION
+          valueFrom:
+            configMapKeyRef:
+              name: my-config
+              key: app-version
+        volumeMounts:  # This section should be at the same level as "env"
+        - name: secrets-volume
+          mountPath: /etc/secrets
+      volumes:
+      - name: secrets-volume
+        secret:
+          secretName: my-secret

@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: my-config
+  name: backend-config
 data:
-  database-url: mongodb://localhost:27017/movie-api-dbmovie-api-db
-  app-version: 1.0
+  database-url: "mongodb://localhost:27017/movie-api-dbmovie-api-db"
+  app-version: "1.0"
