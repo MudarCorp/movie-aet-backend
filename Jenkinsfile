@@ -2,7 +2,11 @@ pipeline {
     agent any
     
     environment {
-        DOCKER_HUB_CREDENTIALS = credentials('docker-hub')
+        DOCKERHUB_USERNAME = "mudashir"
+        APP_NAME = "MOVIE-PROJECT"
+        IMAGE_TAG = "${BUILD_NUMBER}"
+        IMAGE_NAME = "${DOCKERHUB_USERNAME}/${APP_NAME}"
+        REGISTRY_CREDS = 'docker-hub'
     }
     
     stages {
@@ -23,7 +27,7 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    sh 'docker build -t mudashir/my-backend-movie-app:1.0:${BUILD_NUMBER} .'
+                    sh "docker build -t mudashir/my-backend-movie-app:1.0:${BUILD_NUMBER} ."
                 }
             }
         }
@@ -35,16 +39,9 @@ pipeline {
                         sh "docker login -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD}"
                     }
                     sh "docker push mudashir/my-backend-movie-app:1.0:${BUILD_NUMBER}"
-                }
-            }
-        }
-        
-        stage('Deploy to Kubernetes') {
-            steps {
-                script {
-                    withCredentials([file(credentialsId: 'KUBE_CONFIG', variable: 'KUBE_CONFIG')]) {
-                        sh 'kubectl apply -f Backend Deployment.yaml --kubeconfig=$KUBE_CONFIG'
-                    }
+                    
+                    // Clean up Docker login credentials
+                    sh "docker logout your-docker-registry-url"
                 }
             }
         }
