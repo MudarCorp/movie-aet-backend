@@ -1,6 +1,8 @@
 pipeline {
     agent any
-    
+        tools {
+        maven 'Maven'
+    }    
     environment {
         DOCKERHUB_USERNAME = "mudashir"
         APP_NAME = "MOVIE-PROJECT"
