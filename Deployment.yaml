@@ -19,14 +19,14 @@ spec:
         - name: DATABASE_URL
           valueFrom:
             configMapKeyRef:
-              name: my-config
+              name: backend-config
               key: database-url
         - name: APP_VERSION
           valueFrom:
             configMapKeyRef:
-              name: my-config
+              name: backend-config
               key: app-version
-        volumeMounts:  # This section should be at the same level as "env"
+        volumeMounts:  
         - name: secrets-volume
           mountPath: /etc/secrets
       volumes:
