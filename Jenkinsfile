@@ -29,7 +29,10 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    sh "docker build -t mudashir/my-backend-movie-app:1.0:${BUILD_NUMBER} /https://github.com/MudarCorp/movieist/blob/master/Jenkinsfile"
+                    // Directory where the Dockerfile is located
+                    dir('https://github.com/MudarCorp/movieist/blob/master/Dockerfile') {
+                        sh "docker build -t mudashir/my-backend-movie-app:1.0:${BUILD_NUMBER} ."
+                    }
                 }
             }
         }
