@@ -16,6 +16,12 @@ pipeline {
                 cleanWs()
             }
         }
+
+        stage('Checkout SCM') {
+            steps {
+                git credentialsId: 'github', url: 'https://github.com/MudarCorp/movie-aet-backend.git', branch: 'main'
+            }
+        }
         stage('BUILD') {
             steps {
                 sh 'mvn clean install -DskipTests'
