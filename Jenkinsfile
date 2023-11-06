@@ -5,42 +5,75 @@ pipeline {
     }    
     environment {
         DOCKERHUB_USERNAME = "mudashir"
-        APP_NAME = "MOVIE-PROJECT"
-        IMAGE_TAG = "1.0.${BUILD_NUMBER}"
+        APP_NAME = "movies-aet-backend"
+        IMAGE_TAG = "${BUILD_NUMBER}"
         IMAGE_NAME = "${DOCKERHUB_USERNAME}/${APP_NAME}"
+        REGISTRY_CREDS = 'dockerhub'
     }
-    
-    stages {
-        stage('Checkout') {
+       stages {
+        stage('Clean up workspace') {
             steps {
-                checkout scm 
+                cleanWs()
             }
         }
-        
-        stage('Build Backend') {
+        stage('BUILD') {
             steps {
-                sh 'mvn clean install'
+                sh 'mvn clean install -DskipTests'
+            }
+            post {
+                success {
+                    echo 'Now Archiving...'
+                    archiveArtifacts artifacts: '**/target/*.war', allowEmptyArchive: true
+                }
             }
         }
-        
-        stage('Build Docker Image') {
+
+        stage('UNIT TEST') {
             steps {
-                script {
-                    dir('C:/Users/user/Desktop/MOVIE-AET-PROJECT/movieist') {
-                        sh "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} ."
-                    }
+                sh 'mvn test'
+            }
+        }
+
+        stage('INTEGRATION TEST') {
+            steps {
+                sh 'mvn verify -DskipUnitTests'
+            }
+        }
+
+        stage('CODE ANALYSIS WITH CHECKSTYLE') {
+            steps {
+                sh 'mvn checkstyle:checkstyle'
+            }
+            post {
+                success {
+                    echo 'Generated Analysis Result'
                 }
             }
         }
         
-        stage('Push Docker Image') {
+
+       stage('Build Image') {
             steps {
                 script {
-                    withCredentials([usernamePassword(credentialsId: 'DOCKER_HUB_CREDENTIALS', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
-                        sh "docker login -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD}"
-                        sh "docker push ${IMAGE_NAME}:${IMAGE_TAG}"
+                    docker_image = docker.build("${IMAGE_NAME}:${IMAGE_TAG}")
+                }
+            }
+        }
+        
+        stage('Push Image') {
+            steps {
+                script {
+                    docker.withRegistry('',REGISTRY_CREDS){
+                        docker_image.push("$BUILD_NUMBER")
+                        docker_image.push('latest')
                     }
                 }
+            }
+        }
+                stage('Remove Images'){
+            steps{
+                sh "docker rmi ${IMAGE_NAME}:${IMAGE_TAG}"
+                sh "docker rmi ${IMAGE_NAME}:latest"
             }
         }
     }
