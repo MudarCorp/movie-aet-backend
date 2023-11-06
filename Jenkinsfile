@@ -26,7 +26,7 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    dir('C:\Users\user\Desktop\MOVIE-AET-PROJECT\movieist') {
+                    dir('C:/Users/user/Desktop/MOVIE-AET-PROJECT/movieist') {
                         sh "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} ."
                     }
                 }
