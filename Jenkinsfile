@@ -19,7 +19,7 @@ pipeline {
 
         stage('Checkout SCM') {
             steps {
-                git credentialsId: 'github', url: 'https://github.com/MudarCorp/movie-aet-backend.git', branch: 'main'
+                git credentialsId: 'github', url: 'https://github.com/MudarCorp/movie-aet-backend.git', branch: 'master'
             }
         }
         stage('BUILD') {
