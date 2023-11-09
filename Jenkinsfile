@@ -1,7 +1,7 @@
 pipeline {
     agent any
     tools {
-        maven 'Maven' 
+        maven 'maven' 
     }    
     environment {
         DOCKERHUB_USERNAME = "mudashir"
@@ -24,7 +24,7 @@ pipeline {
         }
         stage('BUILD') {
             steps {
-                sh 'mvn clean install #-DskipTests#'
+                sh 'mvn clean install'
             }
         }
 
@@ -36,7 +36,7 @@ pipeline {
 
         stage('INTEGRATION TEST') {
             steps {
-                sh 'mvn verify #-DskipUnitTests#'
+                sh 'mvn verify'
             }
         }
 
